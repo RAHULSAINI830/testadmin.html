@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f4f6f8;
+            display: flex;
+
+            color: #333;
+            height: 100vh;
+        }
+
+        #sidebar {
+            width: 300px;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            color: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar h2 {
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #search-bar {
+            margin: 15px 0;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            width: calc(100% - 30px);
+            outline: none;
+            background: #fff;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #search-bar::placeholder {
+            color: #aaa;
+        }
+
+        #userList {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        #userList::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #userList::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #ffffff, #f4f4f4);
+            color: #333;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .user-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #ffffff, #eaeaea);
+        }
+
+        .user-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 20px;
+            border: 2px solid #ddd;
+        }
+
+        .user-card .info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-card .info .name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-card .info .last-message-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .user-card {
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+            }
+
+            .user-card img {
+                margin: 0 0 10px 0;
+            }
+
+            .user-card .info {
+                align-items: center;
+                text-align: center;
+            }
+
+            .user-card .info .name {
+                font-size: 16px;
+            }
+
+            .user-card .inline-options {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        #chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            padding: 20px;
+            border-left: 1px solid #ddd;
+        }
+
+        /* Chat Header */
+        /* Chat Header Section */
+        #chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(78, 84, 200, 0.7), rgba(143, 148, 251, 0.7));
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        /* Chat Title and Subtitle */
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .chat-subtitle {
+            font-size: 14px;
+            font-weight: 300;
+            margin: 0;
+        }
+
+        /* Floating Action Buttons Container */
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* FAB Style */
+        .fab-container {
+            position: relative;
+        }
+
+        .fab {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Specific FAB Colors */
+        .fab.call {
+            background: linear-gradient(135deg, #4caf50, #81c784);
+        }
+
+        .fab.video-call {
+            background: linear-gradient(135deg, #2196f3, #64b5f6);
+        }
+
+        .fab.transfer-chat {
+            background: linear-gradient(135deg, #ffc107, #ffd54f);
+        }
+
+        .fab.resolve {
+            background: linear-gradient(135deg, #f44336, #e57373);
+        }
+
+        /* FAB Hover Effect */
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tooltip Styling */
+        .tooltip {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .fab-container:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            #chat-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .header-actions {
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .fab {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .tooltip {
+                font-size: 10px;
+            }
+        }
+
+
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 20px 0;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Action Buttons Section */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn i {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+
+        /* Button Colors */
+        .action-btn.solved {
+            background: linear-gradient(135deg, #28a745, #4caf50);
+        }
+
+        .action-btn.copy-link {
+            background: linear-gradient(135deg, #17a2b8, #5bc0de);
+        }
+
+        .action-btn.block {
+            background: linear-gradient(135deg, #ffc107, #ffca2c);
+        }
+
+        .action-btn.delete {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        /* Hover and Active Effects */
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.admin {
+            justify-content: flex-end;
+        }
+
+        .message.user {
+            justify-content: flex-start;
+        }
+
+        .message .text {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.admin .text {
+            background: #4e54c8;
+            color: white;
+        }
+
+        .message.user .text {
+            background: #f1f1f1;
+            color: #333;
+        }
+
+        #input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #replyInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #sendButton {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        #sendButton:hover {
+            background: #3d44aa;
+        }
+
+        /* User Info Section */
+        #user-info-section {
+            width: 100%;
+            max-width: 400px;
+            background: linear-gradient(135deg, #fff, #f4f6f8);
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4e54c8;
+        }
+
+        .flag-badge {
+            position: absolute;
+            bottom: -5px;
+            right: -10px;
+            background: white;
+            border-radius: 50%;
+            padding: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .flag-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #4e54c8;
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+        }
+
+        .user-location {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* View Profile Button */
+        .view-profile-btn {
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .view-profile-btn:hover {
+            background: #3d44aa;
+        }
+
+        /* Info Cards */
+        .info-card {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #ffffff;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card i {
+            font-size: 18px;
+            color: #4e54c8;
+            margin-right: 10px;
+        }
+
+        .info-title {
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Segments Section */
+        .segments-section h4 {
+            font-size: 14px;
+            color: #4e54c8;
+            margin-bottom: 8px;
+        }
+
+        .segment-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 15px;
+            margin-right: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .segment-badge.chat {
+            background-color: #f8b400;
+        }
+
+        .segment-badge.support {
+            background-color: #e74c3c;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 20px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .notes-section h4 {
+            font-size: 14px;
+            color: #4e54c8;
+            margin-bottom: 10px;
+        }
+
+        .admin-notes {
+            width: 94%;
+            height: 80px;
+            padding: 10px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+            resize: none;
+            outline: none;
+        }
+
+        .save-notes-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .save-notes-btn:hover {
+            background: #3d44aa;
+        }
+
+
+        @media (max-width: 480px) {
+            #sidebar {
+                width: 100%;
+                padding: 10px;
+            }
+
+            #sidebar h2 {
+                font-size: 20px;
+                padding: 10px;
+            }
+
+            .user-card {
+                padding: 8px 10px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-card img {
+                display: none;
+                /* Hide user avatars */
+            }
+
+            .user-card .info {
+                flex: none;
+                text-align: center;
+            }
+
+            .user-card .info .name {
+                font-size: 14px;
+            }
+
+            .user-card .info .last-message-time {
+                display: none;
+                /* Hide timestamps */
+            }
+
+            #chat-section {
+                flex: 1;
+                padding: 10px;
+            }
+
+            #messages {
+                padding: 5px;
+                margin: 10px 0;
+            }
+
+            #input-container {
+                gap: 5px;
+                padding: 5px;
+            }
+
+            #replyInput {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            #sendButton {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            #user-info-section {
+                padding: 10px;
+            }
+
+            .profile-header .profile-pic {
+                width: 60px;
+                height: 60px;
+            }
+
+            .flag-icon {
+                width: 15px;
+                height: 15px;
+            }
+
+            .user-name {
+                font-size: 16px;
+            }
+
+            .user-role {
+                font-size: 12px;
+            }
+
+            .info-card {
+                padding: 10px;
+            }
+
+            .notes-section {
+                padding: 8px;
+            }
+
+            .admin-notes {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            #save-notes {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-btn {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+
+
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <h2>Chats</h2>
+        <input type="text" id="search-bar" placeholder="Search users..." />
+        <div id="userList">
+            <div class="user-card">
+                <img src="https://i.pravatar.cc/150?u=1" alt="User Avatar">
+                <div class="info">
+                    <div class="name">Ninaphan05</div>
+                    <div class="last-message-time">Last message: 2024-12-14 14:35</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-section">
+        <div id="chat-header">
+            <div class="header-info">
+                <h3 class="chat-title">Support Chat</h3>
+                <p class="chat-subtitle">Active conversation with John Doe</p>
+            </div>
+            <div class="header-actions">
+                <div class="fab-container">
+                    <button class="fab call" title="Start Call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <span class="tooltip">Call</span>
+                </div>
+                <div class="fab-container">
+                    <button class="fab video-call" title="Start Video Call">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <span class="tooltip">Video Call</span>
+                </div>
+                <div class="fab-container">
+                    <button class="fab transfer-chat" title="Transfer Chat">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                    <span class="tooltip">Transfer</span>
+                </div>
+                <div class="fab-container">
+                    <button class="fab resolve" title="Mark Resolved">
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                    <span class="tooltip">Resolve</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="messages">
+            <div class="message user">
+                <div class="text">Hello, I need help with my account!</div>
+            </div>
+            <div class="message admin">
+                <div class="text">Sure, I'd be happy to assist you. Could you please provide more details?</div>
+            </div>
+        </div>
+
+        <div id="input-container">
+            <input type="text" id="replyInput" placeholder="Type your message...">
+            <button id="sendButton">Send</button>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn solved">
+                <i class="fas fa-check-circle"></i> Mark as Solved
+            </button>
+            <button class="action-btn copy-link">
+                <i class="fas fa-link"></i> Copy Link
+            </button>
+            <button class="action-btn block">
+                <i class="fas fa-ban"></i> Block
+            </button>
+            <button class="action-btn delete">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <div id="user-info-section">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-pic-container">
+                <img src="https://i.pravatar.cc/150?u=user123" alt="User Avatar" class="profile-pic">
+                <span class="flag-badge">
+                    <img src="https://flagcdn.com/us.svg" alt="Country Flag" class="flag-icon">
+                </span>
+            </div>
+            <h3 class="user-name">Ninaphan05</h3>
+            <a href="mailto:ninaphan05@gmail.com" class="user-email">ninaphan05@gmail.com</a>
+            <p class="user-location">King of Prussia, PA</p>
+            <button class="view-profile-btn">View User Profile</button>
+        </div>
+
+        <!-- User Info Cards -->
+        <div class="info-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <div>
+                <span class="info-title">Location:</span>
+                <span class="info-value">King of Prussia, PA, United States</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <i class="fas fa-clock"></i>
+            <div>
+                <span class="info-title">Time Zone:</span>
+                <span class="info-value">8:11 AM (UTC-5)</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <i class="fas fa-laptop"></i>
+            <div>
+                <span class="info-title">Device:</span>
+                <span class="info-value">Samsung Internet 26 on Android</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <i class="fas fa-globe"></i>
+            <div>
+                <span class="info-title">IP Address:</span>
+                <span class="info-value">2607:fb90:6132:401a::</span>
+            </div>
+        </div>
+        <div class="info-card">
+            <i class="fas fa-user-circle"></i>
+            <div>
+                <span class="info-title">Conversation Status:</span>
+                <span class="info-value">None Assigned</span>
+            </div>
+        </div>
+
+        <!-- Segments -->
+        <div class="segments-section">
+            <h4>Segments for Conversation</h4>
+            <span class="segment-badge chat">chat</span>
+            <span class="segment-badge support">support</span>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <h4>Admin Notes</h4>
+            <textarea class="admin-notes" placeholder="Add notes about the user..."></textarea>
+            <button class="save-notes-btn">Save Notes</button>
+        </div>
+    </div>
+
+     <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentUserId = null;
+        const users = {};
+
+        // Render the user list dynamically
+        const renderUserList = () => {
+            const userList = document.getElementById("userList");
+            userList.innerHTML = Object.keys(users).map(userId => {
+                const user = users[userId];
+                return `<div class="user-card" data-user-id="${userId}">
+                    <img src="https://i.pravatar.cc/150?u=${userId}" alt="User Avatar">
+                    <div class="info">
+                        <div class="name">${user.name || 'User ' + userId}</div>
+                        <div class="last-message">${user.lastMessage || 'No messages yet'}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.querySelectorAll(".user-card").forEach(card => {
+                card.addEventListener("click", () => {
+                    const userId = card.getAttribute("data-user-id");
+                    selectUser(userId);
+                });
+            });
+        };
+
+        // Select a user to load messages
+        const selectUser = (userId) => {
+            currentUserId = userId;
+            const chatTitle = document.getElementById("active-user-name");
+            chatTitle.textContent = `Chat with User ${userId}`;
+            const messagesDiv = document.getElementById("messages");
+
+            // Load messages
+            messagesDiv.innerHTML = users[userId].messages.map(msg => {
+                return `<div class="message ${msg.type === 'admin' ? 'admin' : 'user'}">
+                    <div class="text">${msg.message}</div>
+                </div>`;
+            }).join('');
+        };
+
+        // Send a message
+        const sendButton = document.getElementById("sendButton");
+        sendButton.addEventListener("click", () => {
+            const replyInput = document.getElementById("replyInput");
+            const message = replyInput.value.trim();
+
+            if (message && currentUserId) {
+                socket.emit("adminMessage", { userId: currentUserId, message });
+                if (!users[currentUserId].messages) users[currentUserId].messages = [];
+                users[currentUserId].messages.push({ message, type: "admin" });
+                renderUserList();
+            }
+        });
+
+        // Receive messages dynamically
+        socket.on("message", (data) => {
+            if (!users[data.userId]) users[data.userId] = { messages: [] };
+            users[data.userId].messages.push(data);
+            renderUserList();
+        });
+
+        // Analytics modal functionality
+        document.getElementById("close-analytics").addEventListener("click", () => {
+            document.getElementById("analytics-modal").style.display = "none";
+        });
+
+        // Initial load
+        fetch("/admin/messages").then(res => res.json()).then(messages => {
+            messages.forEach(msg => {
+                if (!users[msg.userId]) users[msg.userId] = { messages: [] };
+                users[msg.userId].messages.push(msg);
+            });
+            renderUserList();
+        });
+    </script>
+
+
+
+</body>
+
+</html>
